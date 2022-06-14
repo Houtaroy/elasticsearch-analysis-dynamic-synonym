@@ -3,6 +3,13 @@
  */
 package com.bellszhu.elasticsearch.plugin.synonym.analysis;
 
+import org.apache.commons.codec.Charsets;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.synonym.SynonymMap;
+import org.elasticsearch.env.Environment;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -12,13 +19,6 @@ import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.apache.commons.codec.Charsets;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.elasticsearch.env.Environment;
-
 
 /**
  * @author bellszhu
@@ -27,24 +27,35 @@ public class LocalSynonymFile implements SynonymFile {
 
     private static final Logger logger = LogManager.getLogger("dynamic-synonym");
 
-    private String format;
+    private final String format;
 
-    private boolean expand;
+    private final boolean expand;
 
-    private boolean lenient;
+    private final boolean lenient;
 
-    private Analyzer analyzer;
+    private final Analyzer analyzer;
 
-    private Environment env;
+    private final Environment env;
 
     /**
      * Local file path relative to the config directory
      */
-    private String location;
+    private final String location;
 
     private Path synonymFilePath;
 
     private long lastModified;
+
+    LocalSynonymFile(SynonymProperties properties, Analyzer analyzer) {
+        env = properties.getEnv();
+        this.analyzer = analyzer;
+        expand = properties.isExpand();
+        lenient = properties.isLenient();
+        format = properties.getFormat();
+        location = properties.getUri();
+        synonymFilePath = deepSearch();
+        isNeedReloadSynonymMap();
+    }
 
     LocalSynonymFile(Environment env, Analyzer analyzer, boolean expand, boolean lenient,
                      String format, String location) {

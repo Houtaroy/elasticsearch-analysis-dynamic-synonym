@@ -3,15 +3,6 @@
  */
 package com.bellszhu.elasticsearch.plugin.synonym.analysis;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.text.ParseException;
-
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -27,6 +18,15 @@ import org.elasticsearch.analysis.common.ESSolrSynonymParser;
 import org.elasticsearch.analysis.common.ESWordnetSynonymParser;
 import org.elasticsearch.env.Environment;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.text.ParseException;
+
 /**
  * @author bellszhu
  */
@@ -37,26 +37,39 @@ public class RemoteSynonymFile implements SynonymFile {
 
     private static final Logger logger = LogManager.getLogger("dynamic-synonym");
 
-    private CloseableHttpClient httpclient;
+    private final CloseableHttpClient httpclient;
 
-    private String format;
+    private final String format;
 
-    private boolean expand;
+    private final boolean expand;
 
-    private boolean lenient;
+    private final boolean lenient;
 
-    private Analyzer analyzer;
+    private final Analyzer analyzer;
 
-    private Environment env;
+    private final Environment env;
 
     /**
      * Remote URL address
      */
-    private String location;
+    private final String location;
 
     private String lastModified;
 
     private String eTags;
+
+    RemoteSynonymFile(SynonymProperties properties, Analyzer analyzer) {
+        env = properties.getEnv();
+        this.analyzer = analyzer;
+        expand = properties.isExpand();
+        lenient = properties.isLenient();
+        format = properties.getFormat();
+        location = properties.getUri();
+        httpclient = AccessController.doPrivileged(
+                (PrivilegedAction<CloseableHttpClient>) HttpClients::createDefault
+        );
+        isNeedReloadSynonymMap();
+    }
 
     RemoteSynonymFile(Environment env, Analyzer analyzer,
                       boolean expand, boolean lenient, String format, String location) {
