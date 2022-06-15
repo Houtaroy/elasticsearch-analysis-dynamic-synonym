@@ -11,11 +11,12 @@ import java.io.Reader;
  * @author bellszhu
  */
 public interface SynonymFile {
+  SynonymProperties getProperties();
 
-    SynonymMap reloadSynonymMap();
+  SynonymMap reloadSynonymMap();
 
-    boolean isNeedReloadSynonymMap();
+  boolean isNeedReloadSynonymMap();
 
-    Reader getReader();
+  Reader getReader();
 
 }

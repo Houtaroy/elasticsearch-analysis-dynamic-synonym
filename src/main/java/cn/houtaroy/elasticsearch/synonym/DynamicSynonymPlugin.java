@@ -16,11 +16,11 @@ import static org.elasticsearch.plugins.AnalysisPlugin.requiresAnalysisSettings;
  */
 public class DynamicSynonymPlugin extends Plugin implements AnalysisPlugin {
 
-    @Override
-    public Map<String, AnalysisProvider<TokenFilterFactory>> getTokenFilters() {
-        Map<String, AnalysisProvider<TokenFilterFactory>> extra = new HashMap<>();
-        extra.put("dynamic_synonym", requiresAnalysisSettings(DynamicSynonymTokenFilterFactory::new));
-        extra.put("dynamic_synonym_graph", requiresAnalysisSettings(DynamicSynonymGraphTokenFilterFactory::new));
-        return extra;
-    }
+  @Override
+  public Map<String, AnalysisProvider<TokenFilterFactory>> getTokenFilters() {
+    Map<String, AnalysisProvider<TokenFilterFactory>> extra = new HashMap<>();
+    extra.put("dynamic_synonym", requiresAnalysisSettings(DynamicSynonymFilterFactory::new));
+    extra.put("dynamic_synonym_graph", requiresAnalysisSettings(DynamicSynonymGraphFilterFactory::new));
+    return extra;
+  }
 }

@@ -3,6 +3,7 @@
  */
 package cn.houtaroy.elasticsearch.synonym;
 
+import lombok.Getter;
 import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,129 +26,119 @@ import java.nio.file.Path;
  */
 public class LocalSynonymFile implements SynonymFile {
 
-    private static final Logger logger = LogManager.getLogger("dynamic-synonym");
+  private static final Logger logger = LogManager.getLogger("dynamic-synonym");
+  @Getter
+  private final SynonymProperties properties;
 
-    private final String format;
+  private final String format;
 
-    private final boolean expand;
+  private final boolean expand;
 
-    private final boolean lenient;
+  private final boolean lenient;
 
-    private final Analyzer analyzer;
+  private final Analyzer analyzer;
 
-    private final Environment env;
+  private final Environment env;
 
-    /**
-     * Local file path relative to the config directory
-     */
-    private final String location;
+  /**
+   * Local file path relative to the config directory
+   */
+  private final String location;
 
-    private Path synonymFilePath;
+  private Path synonymFilePath;
 
-    private long lastModified;
+  private long lastModified;
 
-    LocalSynonymFile(SynonymProperties properties, Analyzer analyzer) {
-        env = properties.getEnv();
-        this.analyzer = analyzer;
-        expand = properties.isExpand();
-        lenient = properties.isLenient();
-        format = properties.getFormat();
-        location = properties.getUri();
-        synonymFilePath = deepSearch();
-        isNeedReloadSynonymMap();
+  LocalSynonymFile(SynonymProperties properties, Analyzer analyzer) {
+    this.properties = properties;
+    env = properties.getEnv();
+    this.analyzer = analyzer;
+    expand = properties.isExpand();
+    lenient = properties.isLenient();
+    format = properties.getFormat();
+    location = properties.getUri();
+    synonymFilePath = deepSearch();
+    isNeedReloadSynonymMap();
+  }
+
+  @Override
+  public SynonymMap reloadSynonymMap() {
+    try {
+      logger.info("start reload local synonym from {}.", synonymFilePath);
+      Reader rulesReader = getReader();
+      SynonymMap.Builder parser = RemoteSynonymFile.getSynonymParser(
+        rulesReader, format, expand, lenient, analyzer);
+      return parser.build();
+    } catch (Exception e) {
+      logger.error("reload local synonym {} error!", synonymFilePath, e);
+      throw new IllegalArgumentException(
+        "could not reload local synonyms file to build synonyms", e);
     }
 
-    LocalSynonymFile(Environment env, Analyzer analyzer, boolean expand, boolean lenient,
-                     String format, String location) {
-        this.analyzer = analyzer;
-        this.expand = expand;
-        this.lenient = lenient;
-        this.format = format;
-        this.env = env;
-        this.location = location;
+  }
 
-        this.synonymFilePath = deepSearch();
-        isNeedReloadSynonymMap();
+  /*
+  Just deleted when reading the file, Returns empty synonym
+    keyword if file not exists.
+  A small probability event.
+  */
+  public Reader getReader() {
+    if (!Files.exists(synonymFilePath)) {
+      return new StringReader("");
     }
-
-    @Override
-    public SynonymMap reloadSynonymMap() {
-        try {
-            logger.info("start reload local synonym from {}.", synonymFilePath);
-            Reader rulesReader = getReader();
-            SynonymMap.Builder parser = RemoteSynonymFile.getSynonymParser(
-                    rulesReader, format, expand, lenient, analyzer);
-            return parser.build();
-        } catch (Exception e) {
-            logger.error("reload local synonym {} error!", synonymFilePath, e);
-            throw new IllegalArgumentException(
-                    "could not reload local synonyms file to build synonyms", e);
-        }
-
-    }
-
-    /*
-    Just deleted when reading the file, Returns empty synonym
-      keyword if file not exists.
-    A small probability event.
-    */
-    public Reader getReader() {
-        if (!Files.exists(synonymFilePath)) {
-            return new StringReader("");
-        }
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(
-                synonymFilePath.toUri().toURL().openStream(), Charsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) {
-                // logger.info("reload local synonym: {}", line);
-                sb.append(line).append(System.getProperty("line.separator"));
-            }
-            return new StringReader(sb.toString());
-        } catch (IOException e) {
-            logger.error("get local synonym reader {} error!", location, e);
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(
+      synonymFilePath.toUri().toURL().openStream(), Charsets.UTF_8))) {
+      StringBuilder sb = new StringBuilder();
+      String line;
+      while ((line = br.readLine()) != null) {
+        // logger.info("reload local synonym: {}", line);
+        sb.append(line).append(System.getProperty("line.separator"));
+      }
+      return new StringReader(sb.toString());
+    } catch (IOException e) {
+      logger.error("get local synonym reader {} error!", location, e);
 //            throw new IllegalArgumentException(
 //                    "IOException while reading local synonyms file", e);
 //            Fix #54 Returns blank if synonym file has be deleted.
-            return new StringReader("");
-        }
+      return new StringReader("");
     }
+  }
 
-    @Override
-    public boolean isNeedReloadSynonymMap() {
-        try {
+  @Override
+  public boolean isNeedReloadSynonymMap() {
+    try {
             /*
             If the file does not exist, it will be scanned every time
               until the file is restored.
              */
-            if (!Files.exists(synonymFilePath) && !Files.exists(synonymFilePath = deepSearch())) {
-                return false;
-            }
-            File synonymFile = synonymFilePath.toFile();
-            if (synonymFile.exists()
-                    && lastModified < synonymFile.lastModified()) {
-                lastModified = synonymFile.lastModified();
-                return true;
-            }
-        } catch (Exception e) {
-            logger.error("check need reload local synonym {} error!", location, e);
-        }
-
+      if (!Files.exists(synonymFilePath) && !Files.exists(synonymFilePath = deepSearch())) {
         return false;
+      }
+      File synonymFile = synonymFilePath.toFile();
+      if (synonymFile.exists()
+        && lastModified < synonymFile.lastModified()) {
+        lastModified = synonymFile.lastModified();
+        return true;
+      }
+    } catch (Exception e) {
+      logger.error("check need reload local synonym {} error!", location, e);
     }
 
-    /**
-     * Deep search synonym file.
-     * Step 1. Query the 'sysnonym_path' parameter as an absolute path
-     * Step 2. Query the es config path
-     * Step 3. Query in current relative path
-     * <p>
-     * Override this method to expend search path
-     *
-     * @return the synonym path.
-     */
-    protected Path deepSearch() {
-        return env.configFile().resolve(location);
+    return false;
+  }
+
+  /**
+   * Deep search synonym file.
+   * Step 1. Query the 'sysnonym_path' parameter as an absolute path
+   * Step 2. Query the es config path
+   * Step 3. Query in current relative path
+   * <p>
+   * Override this method to expend search path
+   *
+   * @return the synonym path.
+   */
+  protected Path deepSearch() {
+    return env.configFile().resolve(location);
 //        // TODO
 //        SpecialPermission.check();
 //        return AccessController.doPrivileged((PrivilegedAction<Path>) () -> {
@@ -171,5 +162,5 @@ public class LocalSynonymFile implements SynonymFile {
 ////            }
 ////            return path;
 //        });
-    }
+  }
 }
