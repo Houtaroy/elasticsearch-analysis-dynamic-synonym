@@ -1,21 +1,21 @@
 # Dynamic Synonym for ElasticSearch
 
-The dynamic synonym plugin adds a synonym token filter that reloads the synonym file at given intervals
+This Repository is forked from [bells/elasticsearch-analysis-dynamic-synonym](https://github.com/bells/elasticsearch-analysis-dynamic-synonym)
 
-Synonym type: `file`/`remote`/`jdbc`
+Refactor and support synonym type: `file`/`remote`/`jdbc`
 
 ## Version
 
 dynamic synonym version | ES version
 -----------|-----------
 master| 7.x -> master
-6.1.4 |	6.1.4
-5.2.0 |	5.2.0
-5.1.1 |	5.1.1
+6.1.4 |    6.1.4
+5.2.0 |    5.2.0
+5.1.1 |    5.1.1
 2.3.0 | 2.3.0
 2.2.0 | 2.2.0
 2.1.0 | 2.1.0
-2.0.0 | 2.0.0 
+2.0.0 | 2.0.0
 1.6.0 | 1.6.X
 
 ## Installation
@@ -32,45 +32,49 @@ master| 7.x -> master
 
 2. `mvn package`
 
-3. copy and unzip `target/releases/elasticsearch-analysis-dynamic-synonym-${version}.zip` to `${ES_HOME}/plugins/analysis-dynamic-synonym`
+3. copy and unzip `target/releases/elasticsearch-analysis-dynamic-synonym-${version}.zip`
+   to `${ES_HOME}/plugins/analysis-dynamic-synonym`
 
 ## Example
 
 ```json
 {
-    "index" : {
-        "analysis" : {
-            "analyzer" : {
-                "synonym" : {
-                    "tokenizer" : "whitespace",
-                    "filter" : ["remote_synonym"]
-                }
-            },
-            "filter" : {
-                "file_synonym" : {
-                    "type" : "dynamic_synonym",
-                    "synonym_type": "file",
-                    "uri" : "/dynamic_synonym/synonym.txt",
-                },
-                "remote_synonym" : {
-                    "type" : "dynamic_synonym",
-                    "synonym_type": "remote",
-                    "uri" : "https://localhost:8080/api/synonyms",
-                    "interval": 30
-                },
-                "jdbc_graph" : {
-                    "type" : "dynamic_synonym_graph",
-                    "synonym_type": "jdbc",
-                    "uri": "jdbc:mysql://localhost:3306/elasticsearch?allowPublicKeyRetrieval=true",
-                    "driver_class_name": "com.mysql.cj.jdbc.Driver",
-                    "username": "elasticsearch",
-                    "password": "elasticsearch"
-                }
-            }
+  "index": {
+    "analysis": {
+      "analyzer": {
+        "synonym": {
+          "tokenizer": "whitespace",
+          "filter": [
+            "remote_synonym"
+          ]
         }
+      },
+      "filter": {
+        "file_synonym": {
+          "type": "dynamic_synonym",
+          "synonym_type": "file",
+          "uri": "/dynamic_synonym/synonym.txt"
+        },
+        "remote_synonym": {
+          "type": "dynamic_synonym",
+          "synonym_type": "remote",
+          "uri": "https://localhost:8080/api/synonyms",
+          "interval": 30
+        },
+        "jdbc_graph": {
+          "type": "dynamic_synonym_graph",
+          "synonym_type": "jdbc",
+          "uri": "jdbc:mysql://localhost:3306/elasticsearch?allowPublicKeyRetrieval=true",
+          "driver_class_name": "com.mysql.cj.jdbc.Driver",
+          "username": "elasticsearch",
+          "password": "elasticsearch"
+        }
+      }
     }
+  }
 }
 ```
+
 ## Configuration
 
 | name              | type   | required | default                                 | description                                                  |
@@ -98,7 +102,7 @@ Determined by modification time of the file, if it has changed the synonyms wil
 
 ### remote
 
-Reads out the `Last-Modified` and `ETag` http header. If one of these changes, the synonyms will be reloaded. 
+Reads out the `Last-Modified` and `ETag` http header. If one of these changes, the synonyms will be reloaded.
 
 ### jdbc
 
