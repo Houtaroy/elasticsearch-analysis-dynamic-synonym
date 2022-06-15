@@ -1,41 +1,46 @@
-# Dynamic Synonym for ElasticSearch
+# Elasticsearch 动态同义词插件
 
-This Repository is forked from [bells/elasticsearch-analysis-dynamic-synonym](https://github.com/bells/elasticsearch-analysis-dynamic-synonym)
+[English Documentation](https://github.com/Houtaroy/elasticsearch-analysis-dynamic-synonym/tree/main/docs/en)
 
-Refactor and support synonym type: `file`/`remote`/`jdbc`
+本项目fork自[bells/elasticsearch-analysis-dynamic-synonym](https://github.com/bells/elasticsearch-analysis-dynamic-synonym)
 
-## Version
+重构部分代码, 并支持以下的同步类型:
 
-dynamic synonym version | ES version
------------|-----------
-master| 7.x -> master
-6.1.4 |    6.1.4
-5.2.0 |    5.2.0
-5.1.1 |    5.1.1
-2.3.0 | 2.3.0
-2.2.0 | 2.2.0
-2.1.0 | 2.1.0
-2.0.0 | 2.0.0
-1.6.0 | 1.6.X
+- 文件: `file`
+- 远程: `remote`
+- JDBC: `jdbc`
 
-## Installation
+## 版本对照
 
-### download
+| 插件版本   | ES版本          |
+|--------|---------------|
+| master | 7.x -> master |
+| 6.1.4  | 6.1.4         |
+| 5.2.0  | 5.2.0         |
+| 5.1.1  | 5.1.1         |
+| 2.3.0  | 2.3.0         |
+| 2.2.0  | 2.2.0         |
+| 2.1.0  | 2.1.0         |
+| 2.0.0  | 2.0.0         |
+| 1.6.0  | 1.6.X         |
+
+## 安装
+
+### 下载安装
 
 ```bash
-./bin/elasticsearch-plugin install https://github.com/Houtaroy/elasticsearch-analysis-dynamic-synonym/releases/download/${version}/elasticsearch-analysis-dynamic-synonym-${version}.zip
+./bin/elasticsearch-plugin install https://github.com/Houtaroy/elasticsearch-analysis-dynamic-synonym/releases/download/${版本号}/elasticsearch-analysis-dynamic-synonym-${版本号}.zip
 ```
 
-### compile
+### 编译安装
 
-1. clone or download repository
+1. 克隆或下载本仓库
 
 2. `mvn package`
 
-3. copy and unzip `target/releases/elasticsearch-analysis-dynamic-synonym-${version}.zip`
-   to `${ES_HOME}/plugins/analysis-dynamic-synonym`
+3. 将压缩文件 `target/releases/elasticsearch-analysis-dynamic-synonym-${版本号}.zip`的内容复制到`${ES目录}/plugins/analysis-dynamic-synonym`
 
-## Example
+## 示例
 
 ```json
 {
@@ -77,36 +82,36 @@ master| 7.x -> master
 
 ## Configuration
 
-| name              | type   | required | default                                 | description                                                  |
-| ----------------- | ------ | :------: | --------------------------------------- | ------------------------------------------------------------ |
-| type              | all    |    √     |                                         | `dynamic_synonym`/`dynamic_synonym_graph`                    |
-| synonym_type      | all    |    √     |                                         | `file`/`remote`/`jdbc`                                       |
-| uri               | all    |    √     |                                         | synonyms URI, file path name or URL                          |
-| interval          | all    |    ×     | 60(`jdbc` is 3600)                      | refresh interval in seconds for the synonym                  |
-| expand            | all    |    ×     | true                                    | expand                                                       |
-| lenient           | all    |    ×     | false                                   | lenient on exception thrown when importing a synonym         |
-| format            | all    |    ×     | ' '                                     | synonym file format, for WordNet structure this can be set to `wordnet` |
-| driver_class_name | `jdbc` |    √     |                                         | jdbc driver class name                                       |
-| username          | `jdbc` |    √     |                                         | jdbc connect username                                        |
-| password          | `jdbc` |    √     |                                         | jdbc connect password                                        |
-| synonym_sql       | `jdbc` |    ×     | `select synonym from t_synonym`         | synonym select SQL, result must be string                    |
-| version_sql       | `jdbc` |    ×     | `select version from t_synonym_version` | synonym version select SQL, result must be int               |
+| 名称 | 同步类型 | 必填 | 默认值                       | 描述                                            |
+|----------------| ------ | :------: | --------------------------------------- | ------------------------------------------------------------ |
+| type           | all |    √     |                                         | `dynamic_synonym`/`dynamic_synonym_graph`                    |
+| synonym_type   | all    |    √     |                                         | `file`/`remote`/`jdbc`                                       |
+| uri            | all    |    √     |                                         | 同义词文件URI                  |
+| interval       | all    |    ×     | 60(同步类型是`jdbc`为3600)               | 同义词刷新时间间隔, 单位秒 |
+| expand         | all    |    ×     | true                                    | expand                                                       |
+| lenient        | all    |    ×     | false                                   | lenient on exception thrown when importing a synonym         |
+| format         | all    |    ×     | ' '                                     | synonym file format, for WordNet structure this can be set to `wordnet` |
+| driver_class_name | `jdbc` |    √     |                                         | JDBC驱动类全路径名称        |
+| username       | `jdbc` |    √     |                                         | JDBC连接用户名                         |
+| password       | `jdbc` |    √     |                                         | JDBC连接密码                                                 |
+| synonym_sql    | `jdbc` |    ×     | `select synonym from t_synonym`         | 同义词查询语句, 返回结果为字符串列表 |
+| version_sql    | `jdbc` |    ×     | `select version from t_synonym_version` | 同义词版本查询语句, 返回结果为整形 |
 
-**For `jdbc` type, you should copy your jdbc driver jar to `${ES_HOME}/plugins/analysis-dynamic-synonym`**
+**当同步类型为`jdbc`时, 请将对应的JDBC驱动jar包复制到`${ES目录}/plugins/analysis-dynamic-synonym`**
 
-## Update mechanism
+## 刷新机制
 
 ### file
 
-Determined by modification time of the file, if it has changed the synonyms wil
+依据文件修改时间
 
 ### remote
 
-Reads out the `Last-Modified` and `ETag` http header. If one of these changes, the synonyms will be reloaded.
+获取请求头中的`Last-Modified`或`ETag`, 如果发生改变则刷新
 
 ### jdbc
 
-1. execute `version_sql`, get first column to compare
-2. if persistence version is larger, execute `synonym_sql`, get first column to update synonyms
+1. 执行同义词版本查询语句, 取第一行第一列结果与内存记录的版本进行比较
+2. 如果数据库中的版本较大, 执行同义词查询语句, 将所有行的第一列作为同义词结果进行刷新
 
-**Note:** File encoding should be an utf-8 text file. 
+注意: 文件编码应为`utf-8`
