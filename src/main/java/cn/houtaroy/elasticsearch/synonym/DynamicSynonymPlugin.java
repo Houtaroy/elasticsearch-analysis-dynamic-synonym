@@ -1,17 +1,14 @@
-package com.bellszhu.elasticsearch.plugin;
-
-import static org.elasticsearch.plugins.AnalysisPlugin.requiresAnalysisSettings;
-
-import java.util.HashMap;
-import java.util.Map;
+package cn.houtaroy.elasticsearch.synonym;
 
 import org.elasticsearch.index.analysis.TokenFilterFactory;
 import org.elasticsearch.indices.analysis.AnalysisModule.AnalysisProvider;
 import org.elasticsearch.plugins.AnalysisPlugin;
 import org.elasticsearch.plugins.Plugin;
 
-import com.bellszhu.elasticsearch.plugin.synonym.analysis.DynamicSynonymGraphTokenFilterFactory;
-import com.bellszhu.elasticsearch.plugin.synonym.analysis.DynamicSynonymTokenFilterFactory;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.elasticsearch.plugins.AnalysisPlugin.requiresAnalysisSettings;
 
 
 /**

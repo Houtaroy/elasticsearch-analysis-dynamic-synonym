@@ -1,4 +1,4 @@
-package com.bellszhu.elasticsearch.plugin.synonym.analysis;
+package cn.houtaroy.elasticsearch.synonym;
 
 import lombok.Getter;
 import org.elasticsearch.common.settings.Settings;

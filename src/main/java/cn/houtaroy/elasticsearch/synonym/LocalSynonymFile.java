@@ -1,7 +1,7 @@
 /**
  *
  */
-package com.bellszhu.elasticsearch.plugin.synonym.analysis;
+package cn.houtaroy.elasticsearch.synonym;
 
 import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;

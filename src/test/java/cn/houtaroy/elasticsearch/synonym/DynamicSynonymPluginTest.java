@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bellszhu.elasticsearch.plugin;
+package cn.houtaroy.elasticsearch.synonym;
 
 import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
 import org.elasticsearch.action.ActionFuture;
@@ -44,7 +44,7 @@ public class DynamicSynonymPluginTest {
         // create ES nodes
         runner.build(newConfigs()
                 .numOfNode(1) // Create a test node, default number of node is 3.
-                .pluginTypes("com.bellszhu.elasticsearch.plugin.DynamicSynonymPlugin")
+                .pluginTypes("cn.houtaroy.elasticsearch.synonym.DynamicSynonymPlugin")
         );
     }
 

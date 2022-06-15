@@ -1,4 +1,4 @@
-package com.bellszhu.elasticsearch.plugin.synonym.analysis;
+package cn.houtaroy.elasticsearch.synonym;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -17,9 +17,6 @@ package com.bellszhu.elasticsearch.plugin.synonym.analysis;
  * limitations under the License.
  */
 
-import java.io.IOException;
-import java.util.Arrays;
-
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -35,6 +32,9 @@ import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.CharsRefBuilder;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.apache.lucene.util.fst.FST;
+
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Matches single or multi word synonyms in a token stream. This token stream
@@ -216,7 +216,7 @@ public final class DynamicSynonymFilter extends AbsSynonymFilter {
             final char[] buffer;
             final int bufferLen;
 
-            int inputEndOffset = 0;
+            int inputEndOffset;
 
             if (curNextRead == nextWrite) {
 
@@ -606,13 +606,13 @@ public final class DynamicSynonymFilter extends AbsSynonymFilter {
             }
             if (count == endOffsets.length) {
                 final int[] next = new int[ArrayUtil.oversize(1 + count,
-                                                              Integer.BYTES)];
+                        Integer.BYTES)];
                 System.arraycopy(endOffsets, 0, next, 0, count);
                 endOffsets = next;
             }
             if (count == posLengths.length) {
                 final int[] next = new int[ArrayUtil.oversize(1 + count,
-                                                              Integer.BYTES)];
+                        Integer.BYTES)];
                 System.arraycopy(posLengths, 0, next, 0, count);
                 posLengths = next;
             }

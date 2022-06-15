@@ -1,4 +1,4 @@
-package com.bellszhu.elasticsearch.plugin.synonym.analysis;
+package cn.houtaroy.elasticsearch.synonym;
 
 import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
@@ -10,8 +10,6 @@ import org.apache.lucene.analysis.synonym.SynonymMap;
 public abstract class AbsSynonymFilter extends TokenFilter {
     /**
      * Construct a token stream filtering the given input.
-     *
-     * @param input
      */
     protected AbsSynonymFilter(TokenStream input) {
         super(input);
