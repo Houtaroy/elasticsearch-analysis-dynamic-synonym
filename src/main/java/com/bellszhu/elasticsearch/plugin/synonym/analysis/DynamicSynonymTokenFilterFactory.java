@@ -38,7 +38,6 @@ public class DynamicSynonymTokenFilterFactory extends AbstractTokenFilterFactory
         return thread;
     });
     private volatile ScheduledFuture<?> scheduledFuture;
-    private final int interval;
     protected SynonymMap synonymMap;
     protected Map<AbsSynonymFilter, Integer> dynamicSynonymFilters = new WeakHashMap<>();
     protected final Environment environment;
@@ -53,7 +52,6 @@ public class DynamicSynonymTokenFilterFactory extends AbstractTokenFilterFactory
     ) {
         super(indexSettings, name, settings);
         this.properties = new SynonymProperties(env, settings);
-        this.interval = settings.getAsInt("interval", 60);
         this.analysisMode = settings.getAsBoolean("updateable", false) ?
                 AnalysisMode.SEARCH_TIME : AnalysisMode.ALL;
         this.environment = env;
@@ -138,7 +136,7 @@ public class DynamicSynonymTokenFilterFactory extends AbstractTokenFilterFactory
     SynonymFile getSynonymFile(Analyzer analyzer) {
         try {
             SynonymFile synonymFile = SynonymFactory.create(properties, analyzer);
-            monitor(synonymFile, interval);
+            monitor(synonymFile, properties.getInterval());
             return synonymFile;
         } catch (Exception e) {
             logger.error("failed to get synonyms from uri: {}", properties.getUri(), e);

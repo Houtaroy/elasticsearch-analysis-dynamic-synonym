@@ -139,7 +139,8 @@ public class DynamicSynonymPluginTest {
                 "      \"filter\":{\n" +
                 "        \"remote_synonym\": {\n" +
                 "            \"type\": \"dynamic_synonym_graph\",\n" +
-                "            \"synonymType\": \"jdbc\",\n" +
+                "            \"synonym_type\": \"jdbc\",\n" +
+                "            \"driver_class_name\": \"com.mysql.cj.jdbc.Driver\",\n" +
                 "            \"uri\": \"jdbc:mysql://bj-cdb-9amt73r4.sql.tencentcdb.com:59997/elasticsearch?allowPublicKeyRetrieval=true\",\n" +
                 "            \"username\": \"test\",\n" +
                 "            \"password\": \"test@5015021301\",\n" +

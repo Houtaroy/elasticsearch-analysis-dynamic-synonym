@@ -4,9 +4,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.synonym.SynonymMap;
+import org.elasticsearch.SpecialPermission;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -26,12 +29,8 @@ public class JdbcSynonym implements SynonymFile {
     JdbcSynonym(SynonymProperties properties, Analyzer analyzer) {
         this.properties = properties;
         this.analyzer = analyzer;
-        if (properties.getInterval() < Constants.SECONDS_PER_HOUR) {
-            logger.warn(
-                    "The interval of jdbc synonym is less than {}, it may cause performance issue.",
-                    Constants.SECONDS_PER_HOUR
-            );
-        }
+        loadDriverClass(properties.getDriverClassName());
+        intervalTooSmallWarning();
     }
 
     @Override
@@ -58,17 +57,20 @@ public class JdbcSynonym implements SynonymFile {
 
     @Override
     public Reader getReader() {
-        try (Connection connection = getConnection();
-             ResultSet rs = connection.prepareStatement(properties.getSynonymSql()).executeQuery()) {
-            StringBuilder sb = new StringBuilder();
-            while (rs.next()) {
-                sb.append(rs.getString(1)).append(System.getProperty("line.separator"));
+        SpecialPermission.check();
+        return AccessController.doPrivileged((PrivilegedAction<Reader>) () -> {
+            try (Connection connection = getConnection();
+                 ResultSet rs = connection.prepareStatement(properties.getSynonymSql()).executeQuery()) {
+                StringBuilder sb = new StringBuilder();
+                while (rs.next()) {
+                    sb.append(rs.getString(1)).append(System.getProperty("line.separator"));
+                }
+                return new StringReader(sb.toString());
+            } catch (SQLException e) {
+                logger.error("get jdbc synonyms error!", e);
+                throw new IllegalArgumentException("could not get jdbc synonyms", e);
             }
-            return new StringReader(sb.toString());
-        } catch (SQLException e) {
-            logger.error("get jdbc synonyms error!", e);
-            throw new IllegalArgumentException("could not get jdbc synonyms", e);
-        }
+        });
     }
 
     /**
@@ -77,14 +79,17 @@ public class JdbcSynonym implements SynonymFile {
      * @return version, example: 1
      */
     protected int getVersion() {
-        try (Connection connection = getConnection();
-             ResultSet rs = connection.prepareStatement(properties.getVersionSql()).executeQuery()) {
-            rs.next();
-            return rs.getInt(1);
-        } catch (SQLException e) {
-            logger.error("get jdbc synonym version error", e);
-            return -1;
-        }
+        SpecialPermission.check();
+        return AccessController.doPrivileged((PrivilegedAction<Integer>) () -> {
+            try (Connection connection = getConnection();
+                 ResultSet rs = connection.prepareStatement(properties.getVersionSql()).executeQuery()) {
+                rs.next();
+                return rs.getInt(1);
+            } catch (SQLException e) {
+                logger.error("get jdbc synonym version error", e);
+                return -1;
+            }
+        });
     }
 
     /**
@@ -95,5 +100,32 @@ public class JdbcSynonym implements SynonymFile {
      */
     protected Connection getConnection() throws SQLException {
         return DriverManager.getConnection(properties.getUri(), properties.getUsername(), properties.getPassword());
+    }
+
+    /**
+     * interval too small warning
+     * if the interval is less than 3600 seconds, we will warn the user
+     */
+    protected void intervalTooSmallWarning() {
+        if (properties.getInterval() < Constants.SECONDS_PER_HOUR) {
+            logger.warn(
+                    "The interval of jdbc synonym is less than {}, it may cause performance issue",
+                    Constants.SECONDS_PER_HOUR
+            );
+        }
+    }
+
+    /**
+     * load jdbc driver class
+     *
+     * @param className jdbc driver class name
+     */
+    protected void loadDriverClass(String className) {
+        try {
+            Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            logger.error("could not load jdbc driver {}", className, e);
+            throw new IllegalArgumentException("could not load jdbc driver class", e);
+        }
     }
 }

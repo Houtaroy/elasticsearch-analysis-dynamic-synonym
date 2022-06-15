@@ -21,6 +21,7 @@ public class SynonymProperties {
     protected String synonymType;
     protected String uri;
     protected int interval;
+    protected String driverClassName;
     protected String username;
     protected String password;
     protected String synonymSql;
@@ -28,16 +29,17 @@ public class SynonymProperties {
 
     public SynonymProperties(Environment env, Settings settings) {
         this.env = env;
-        this.expand = settings.getAsBoolean("expand", true);
-        this.lenient = settings.getAsBoolean("lenient", false);
-        this.format = settings.get("format", "");
-        this.synonymType = settings.get("synonymType", DEFAULT_SYNONYM_TYPE);
-        this.uri = settings.get("uri");
-        this.interval = settings.getAsInt("interval", determineInterval(synonymType));
-        this.username = settings.get("username");
-        this.password = settings.get("password");
-        this.synonymSql = settings.get("synonymSql", DEFAULT_SYNONYM_SQL);
-        this.versionSql = settings.get("versionSql", DEFAULT_VERSION_SQL);
+        expand = settings.getAsBoolean("expand", true);
+        lenient = settings.getAsBoolean("lenient", false);
+        format = settings.get("format", "");
+        synonymType = settings.get("synonym_type", DEFAULT_SYNONYM_TYPE);
+        uri = settings.get("uri");
+        interval = settings.getAsInt("interval", determineInterval(synonymType));
+        driverClassName = settings.get("driver_class_name");
+        username = settings.get("username");
+        password = settings.get("password");
+        synonymSql = settings.get("synonym_sql", DEFAULT_SYNONYM_SQL);
+        versionSql = settings.get("version_sql", DEFAULT_VERSION_SQL);
     }
 
     /**
