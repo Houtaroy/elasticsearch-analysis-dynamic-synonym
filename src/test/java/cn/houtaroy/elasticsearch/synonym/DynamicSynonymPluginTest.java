@@ -20,7 +20,7 @@ import org.codelibs.elasticsearch.runner.ElasticsearchClusterRunner;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.admin.indices.analyze.AnalyzeAction;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -141,9 +141,9 @@ public class DynamicSynonymPluginTest {
       "            \"type\": \"dynamic_synonym_graph\",\n" +
       "            \"synonym_type\": \"jdbc\",\n" +
       "            \"driver_class_name\": \"com.mysql.cj.jdbc.Driver\",\n" +
-      "            \"uri\": \"jdbc:mysql://localhost:3306/elasticsearch?allowPublicKeyRetrieval=true\",\n" +
-      "            \"username\": \"elasticsearch\",\n" +
-      "            \"password\": \"elasticsearch\",\n" +
+      "            \"uri\": \"jdbc:mysql://bj-cdb-9amt73r4.sql.tencentcdb.com:59997/elasticsearch?allowPublicKeyRetrieval=true\",\n" +
+      "            \"username\": \"test\",\n" +
+      "            \"password\": \"test@5015021301\",\n" +
       "            \"interval\": \"10\"\n" +
       "        }" +
       "      },\n" +
